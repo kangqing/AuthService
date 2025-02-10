@@ -1,9 +1,5 @@
 # 1.0 最简单方案，仅yml配置即可
 
-## 使用方案
-1. 目标，访问 localhost:9000/test 接口
-2. 跳转默认登录页面，用户名密码在yml中已经配置，abc/123456
-3. 访问成功
 
 ## 授权码模式演示流程
 1. 访问授权端点，触发授权流程 http://127.0.0.1:9000/oauth2/authorize?response_type=code&client_id=oidc-client&scope=openid%20profile&redirect_uri=http://127.0.0.1:8080/login/oauth2/code/oidc-client
