@@ -20,7 +20,7 @@ logging:
 #              client-authentication-methods:
 #                - "client_secret_basic"
 #              authorization-grant-types:
-#                - "authorization_code"
+#                - "authorization_code"  # 授权码模式
 #                - "refresh_token"
 #              redirect-uris:
 #                - "http://127.0.0.1:8080/login/oauth2/code/oidc-client"

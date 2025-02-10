@@ -44,10 +44,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 public class SecurityConfig {
 
     /**
-     * 	针对协议端点的 Spring Security 过滤器链
-     * @param http
-     * @return
-     * @throws Exception
+     * 	配置 OAuth2 授权服务器，仅支持客户端授权模式（Client Credentials Grant）
      */
     @Bean
     @Order(1)
@@ -57,84 +54,34 @@ public class SecurityConfig {
                 OAuth2AuthorizationServerConfigurer.authorizationServer();
 
         http
-                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-                .with(authorizationServerConfigurer, (authorizationServer) ->
-                        authorizationServer
-                                .oidc(Customizer.withDefaults())	// Enable OpenID Connect 1.0
-                )
-                .authorizeHttpRequests((authorize) ->
-                        authorize
-                                .anyRequest().authenticated()
-                )
-                // Redirect to the login page when not authenticated from the
-                // authorization endpoint
-                .exceptionHandling((exceptions) -> exceptions
-                        .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                        )
-                );
-
-        return http.build();
-    }
-
-    /**
-     * 用于身份验证的 Spring Security 过滤器链
-     * @param http
-     * @return
-     * @throws Exception
-     */
-    @Bean
-    @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
-            throws Exception {
-        http
+                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher()) // 只匹配 OAuth2 端点
                 .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers("/oauth2/token").permitAll() // 允许访问 Token 端点
                         .anyRequest().authenticated()
                 )
-                // Form login handles the redirect to the login page from the
-                // authorization server filter chain
-                .formLogin(Customizer.withDefaults());
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/oauth2/token")) // 关闭 Token 端点 CSRF 保护
+                .with(authorizationServerConfigurer, Customizer.withDefaults());
 
         return http.build();
     }
 
     /**
-     * 用于检索要进行身份验证的用户的实例UserDetailsService
-     * @return
-     */
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails userDetails = User.withDefaultPasswordEncoder()
-                .username("abc")
-                .password("123456")
-                .roles("USER")
-                .build();
-
-        return new InMemoryUserDetailsManager(userDetails);
-    }
-
-    /**
-     * 用于管理客户端的一个实例RegisteredClientRepository
-     * @return
+     * 配置客户端信息，仅支持 Client Credentials 模式，客户端模式是机器到机器的请求，无需用户授权，所以不支持刷新令牌；
      */
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("oidc-client")
-                .clientSecret("{noop}123456")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
-                .postLogoutRedirectUri("http://127.0.0.1:8080/")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+        RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("oidc-client") // 客户端 ID
+                .clientSecret("{noop}123456") // 客户端密钥（{noop} 代表不加密）
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC) // 使用 Basic Auth 方式认证
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS) // 仅允许 client_credentials
+                .scope("read") // 设定权限范围
+                .scope("write")
                 .build();
 
-        return new InMemoryRegisteredClientRepository(oidcClient);
+        return new InMemoryRegisteredClientRepository(client);
     }
+
 
     @Bean
     public JWKSource<SecurityContext> jwkSource() {

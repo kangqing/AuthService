@@ -1,6 +1,6 @@
 # 1.0 最简单方案，仅yml配置即可
 
-## 授权码模式演示流程
+## 一、授权码模式演示流程
 1. 访问授权端点，触发授权流程 http://127.0.0.1:9000/oauth2/authorize?response_type=code&client_id=oidc-client&scope=openid%20profile&redirect_uri=http://127.0.0.1:8080/login/oauth2/code/oidc-client
 2. 跳转登录页面，用户名密码在yml中已经配置，abc/123456, 点击授权
 3. url返回授权码code http://127.0.0.1:8080/login/oauth2/code/oidc-client?code=6bC8V9B78nH1xOVOYX1sBggXWEQPGVvg2eKOYjwY3p_GBqc3xsIFmcrUWZNYrZlLDWvHGL6D2e-ONgi8ZG3vKHVLF9giYRL0j5N4B0g8VwIjAmPZm7rHJnInQh0hmJae
@@ -66,6 +66,28 @@ spring:
         jwt:
           jwk-set-uri: http://127.0.0.1:9000/oauth2/jwks  # 设置授权服务器的公钥 JWK URL
 ```
+
+## 二、客户端模式：Client Credentials Grant
+适用于：无需用户接入，直接用 key 和 secret 换取 accessToken
+如果 access_token 失效，客户端需要重新获取一个新的 access_token，因为在此模式下是基于客户端(服务器作为客户端)与授权服务器之间的机器到机器
+（无用户交互）的授权， 因此 refresh_token 并不会提供；
+
+```bash
+curl -X POST http://127.0.0.1:9000/oauth2/token \
+  -u "oidc-client:123456" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&scope=read"
+```
+
+## 三、客户端直接请求 AccessToken 模式 (不安全) 安全性较低，因为 access_token 通过 URL 返回
+适用于：公共客户端（前端应用、SPA）
+Implicit Grant 是 OAuth 2.0 授权流程中的一种授权模式，通常用于 Web 应用 和 SPA（单页应用）。与其他授权方式（如授权码授权）相比，
+Implicit Grant 主要用于 客户端直接从授权服务器获取 Access Token，而不需要在服务器端进行中转。
+
+
+## 四、密码模式
+密码模式 适用于受信任的客户端（如桌面应用、移动端应用等），它可以直接通过用户名和密码获取 access_token，并支持刷新令牌，适合长期访问和频繁刷新令牌的场景。
+
 
 
 
