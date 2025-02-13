@@ -79,7 +79,7 @@ curl -X POST http://127.0.0.1:9000/oauth2/token \
   -d "grant_type=client_credentials&scope=read"
 ```
 
-## 三、客户端直接请求 AccessToken 模式 (不安全) 安全性较低，因为 access_token 通过 URL 返回
+## 三、Implicit Grant 客户端直接请求 AccessToken 模式 (不安全) 安全性较低，因为 access_token 通过 URL 返回
 适用于：公共客户端（前端应用、SPA）
 Implicit Grant 是 OAuth 2.0 授权流程中的一种授权模式，通常用于 Web 应用 和 SPA（单页应用）。与其他授权方式（如授权码授权）相比，
 Implicit Grant 主要用于 客户端直接从授权服务器获取 Access Token，而不需要在服务器端进行中转。
