@@ -38,6 +38,9 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -75,7 +78,7 @@ public class SecurityConfig {
                         )
                 );
 
-        return http.build();
+        return http.cors(Customizer.withDefaults()).build();
     }
 
     /**
@@ -96,7 +99,19 @@ public class SecurityConfig {
                 // authorization server filter chain
                 .formLogin(Customizer.withDefaults());
 
-        return http.build();
+        return http.cors(Customizer.withDefaults()).build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.addAllowedOrigin("http://127.0.0.1:8080");
+        config.setAllowCredentials(true);
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     /**
@@ -122,15 +137,18 @@ public class SecurityConfig {
     public RegisteredClientRepository registeredClientRepository() {
         RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("oidc-client")
-                .clientSecret("{noop}123456")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                //.clientSecret("{noop}123456")  // 公共客户端不需要
+                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE) // 公共客户端需要设置NONE
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
                 .postLogoutRedirectUri("http://127.0.0.1:8080/")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+                .clientSettings(ClientSettings.builder()
+                        .requireProofKey(true) // 启用 PKCE
+                        //.requireAuthorizationConsent(true) // 需要用户授权同意
+                        .build())
                 .build();
 
         return new InMemoryRegisteredClientRepository(oidcClient);

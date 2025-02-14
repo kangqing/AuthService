@@ -69,3 +69,40 @@ spring:
 
 
 
+## 授权码模式结合 PKCE 
+![](./截屏2025-02-14%2011.30.42.png)
+PKCE 主要用于 公共客户端，尤其是没有安全存储密钥的客户端，如移动端应用或单页应用（SPA）。这些应用程序通常运行在用户的浏览器或移动设备上，
+不能像传统的服务端应用那样安全地存储 client_secret。因此，PKCE 提供了一种安全的方式来交换授权码，从而防止授权码被拦截。
+
+![截屏2025-02-14 11.42.02.png](%E6%88%AA%E5%B1%8F2025-02-14%2011.42.02.png)
+
+在这种情况下，PKCE 结合授权码模式（Authorization Code Flow）并不返回 refresh_token，而是只返回 access_token。这是因为，通常来说，
+refresh_token 是一种长期的凭证，在公共客户端中返回它可能会带来安全风险。
+
+1. 检查 code_verifier 和 code_challenge 的生成
+确保客户端在授权请求和令牌请求中正确生成和使用 code_verifier 和 code_challenge。
+
+code_verifier：一个随机字符串，长度为 43 到 128 个字符，包含字母、数字、-、.、_ 和 ~。
+
+code_challenge：code_verifier 的 SHA-256 哈希值，并进行 Base64 URL 编码。
+
+2. 访问浏览器
+```bash
+localhost:9000/oauth2/authorize?response_type=code&client_id=oidc-client&redirect_uri=http://127.0.0.1:8080/login/oauth2/code/oidc-client&scope=openid profile&state=12345&code_challenge=fsvt2qKn7CczAeQgZKTMpP84ymJdgkZEdEI7815HjUk&code_challenge_method=S256
+```
+
+3. 得到 code
+4. 使用 code 换取 accessToken
+
+```bash
+curl -X POST \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=authorization_code" \
+  -d "code=Vf_cEwx25tGO_zfmedsnuLxssJhqumvlQ5cXXlULDpi-H_I32hi2Ttao3-DXFU-lBQgKUTeqiKTa6T80FpDztHw5_5L4mKZXjxT_GuuZkVZUiae-Gozx1DVk-nBNyacM" \
+  -d "redirect_uri=http://127.0.0.1:8080/login/oauth2/code/oidc-client" \
+  -d "client_id=oidc-client" \
+  -d "code_verifier=LNnxnxU6xZtT7Bnd98yacF5LKsp5T675dg7X-SWLtPQ" \
+  http://127.0.0.1:9000/oauth2/token
+```
+
+

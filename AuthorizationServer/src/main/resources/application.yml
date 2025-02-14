@@ -7,26 +7,21 @@ logging:
 
 #spring:
 #  security:
-#    user:
-#      name: abc
-#      password: 123456
 #    oauth2:
 #      authorization server:
 #        client:
-#          oidc-client:
+#          public-client:
 #            registration:
-#              client-id: "oidc-client"
-#              client-secret: "{noop}123456"
+#              client-id: "public-client"
 #              client-authentication-methods:
-#                - "client_secret_basic"
+#                - "none"
 #              authorization-grant-types:
 #                - "authorization_code"
 #                - "refresh_token"
 #              redirect-uris:
-#                - "http://127.0.0.1:8080/login/oauth2/code/oidc-client"
-#              post-logout-redirect-uris:
-#                - "http://127.0.0.1:8080/"
+#                - "http://127.0.0.1:4200"
 #              scopes:
 #                - "openid"
 #                - "profile"
 #            require-authorization-consent: true
+#            require-proof-key: true
