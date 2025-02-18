@@ -7,3 +7,8 @@ spring:
       resource server:
         jwt:
           jwk-set-uri: http://127.0.0.1:9000/oauth2/jwks  # 设置授权服务器的公钥 JWK URL
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
