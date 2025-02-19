@@ -9,6 +9,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +43,8 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -89,6 +92,7 @@ public class SecurityConfig {
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS) // 仅允许 client_credentials
                 .scope("read") // 设定权限范围
                 .scope("write")
+                .tokenSettings(tokenSettings()) // 自定义token设置
                 .build();
 
         return new InMemoryRegisteredClientRepository(client);
@@ -129,6 +133,17 @@ public class SecurityConfig {
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder().build();
+    }
+
+    @Bean
+    public TokenSettings tokenSettings() {
+        // 设置 access_token 的过期时间为一天
+        return TokenSettings.builder()
+                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED) // 默认JWT方式，另一种是不透明令牌
+                .accessTokenTimeToLive(Duration.ofDays(1)) // 设置为 1 天
+                //.refreshTokenTimeToLive(Duration.ofDays(30)) // 设置为 30 天
+                //.reuseRefreshTokens(true) // 设置为 true 以重用刷新令牌
+                .build();
     }
 
     @Bean

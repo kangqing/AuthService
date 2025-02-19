@@ -21,6 +21,10 @@ import java.util.List;
 @Configuration
 public class ResourceSecurityConfig {
 
+    /**
+     * 解析授权服务器添加到 claims 中的角色和权限
+     * @return
+     */
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
