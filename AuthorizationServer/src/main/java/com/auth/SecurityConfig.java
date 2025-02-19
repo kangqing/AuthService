@@ -143,7 +143,7 @@ public class SecurityConfig {
                     log.info("Generating token for client: {}", clientId);
 
                     // 这里可以根据 clientId 或其他认证信息来查询数据库获取角色和权限
-                    List<String> roles = List.of("USER", "ADMIN");
+                    List<String> roles = List.of("ROLE_USER", "ROLE_ADMIN");
                     List<String> authorities = new ArrayList<>(List.of("abc:123", "abc:456"));
 
                     // 将角色和权限添加到 JWT 的 claims 中
