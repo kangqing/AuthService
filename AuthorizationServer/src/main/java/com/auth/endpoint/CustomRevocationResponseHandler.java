@@ -1,3 +1,0 @@
-package com.auth.endpoint;
-
-

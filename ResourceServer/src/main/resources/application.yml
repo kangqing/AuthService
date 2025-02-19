@@ -7,6 +7,10 @@ spring:
       resource server:
         jwt:
           jwk-set-uri: http://127.0.0.1:9000/oauth2/jwks  # 设置授权服务器的公钥 JWK URL
+#        opaque token: # 不透明令牌才需要
+#          introspection-uri: http://127.0.0.1:9000/oauth2/introspect
+#          client-secret: 123456
+#          client-id: oidc-client
 
 logging:
   level:

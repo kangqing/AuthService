@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-//@Component
+@Component
 public class JpaRegisteredClientRepository implements RegisteredClientRepository {
     private final ClientRepository clientRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -83,11 +83,11 @@ public class JpaRegisteredClientRepository implements RegisteredClientRepository
                 .postLogoutRedirectUris((uris) -> uris.addAll(postLogoutRedirectUris))
                 .scopes((scopes) -> scopes.addAll(clientScopes));
 
-        Map<String, Object> clientSettingsMap = parseMap(client.getClientSettings());
-        builder.clientSettings(ClientSettings.withSettings(clientSettingsMap).build());
+//        Map<String, Object> clientSettingsMap = parseMap(client.getClientSettings());
+//        builder.clientSettings(ClientSettings.withSettings(clientSettingsMap).build());
 
-        Map<String, Object> tokenSettingsMap = parseMap(client.getTokenSettings());
-        builder.tokenSettings(TokenSettings.withSettings(tokenSettingsMap).build());
+//        Map<String, Object> tokenSettingsMap = parseMap(client.getTokenSettings());
+//        builder.tokenSettings(TokenSettings.withSettings(tokenSettingsMap).build());
 
         return builder.build();
     }

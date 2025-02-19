@@ -1,5 +1,6 @@
 package com.auth;
 
+import com.auth.endpoint.CustomTokenRevocationSuccessHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
@@ -71,11 +72,23 @@ public class SecurityConfig {
         http
                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher()) // 只匹配 OAuth2 端点
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/oauth2/token").permitAll() // 允许访问 Token 端点
+                        .requestMatchers("/oauth2/introspect").permitAll() // 允许访问 Token 端点
                         .anyRequest().authenticated()
                 )
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/oauth2/token")) // 关闭 Token 端点 CSRF 保护
-                .with(authorizationServerConfigurer, Customizer.withDefaults());
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/oauth2/introspect")) // 关闭 Token 端点 CSRF 保护
+                //.with(authorizationServerConfigurer, Customizer.withDefaults());
+                .with(authorizationServerConfigurer, (authorizationServer) ->
+                        authorizationServer
+                                .tokenRevocationEndpoint(tokenRevocationEndpoint ->
+                                        tokenRevocationEndpoint
+//                                                .revocationRequestConverter(revocationRequestConverter)
+//                .revocationRequestConverters(revocationRequestConvertersConsumer)
+//                .authenticationProvider(authenticationProvider)
+//                .authenticationProviders(authenticationProvidersConsumer)
+                .revocationResponseHandler(new CustomTokenRevocationSuccessHandler())
+//                .errorResponseHandler(errorResponseHandler)
+				)
+		);
 
         return http.build();
     }
@@ -83,20 +96,20 @@ public class SecurityConfig {
     /**
      * 配置客户端信息，仅支持 Client Credentials 模式，客户端模式是机器到机器的请求，无需用户授权，所以不支持刷新令牌；
      */
-    @Bean
-    public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("oidc-client") // 客户端 ID
-                .clientSecret("{noop}123456") // 客户端密钥（{noop} 代表不加密）
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC) // 使用 Basic Auth 方式认证
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS) // 仅允许 client_credentials
-                .scope("read") // 设定权限范围
-                .scope("write")
-                .tokenSettings(tokenSettings()) // 自定义token设置
-                .build();
-
-        return new InMemoryRegisteredClientRepository(client);
-    }
+//    @Bean
+//    public RegisteredClientRepository registeredClientRepository() {
+//        RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
+//                .clientId("oidc-client") // 客户端 ID
+//                .clientSecret("{noop}123456") // 客户端密钥（{noop} 代表不加密）
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC) // 使用 Basic Auth 方式认证
+//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS) // 仅允许 client_credentials
+//                .scope("read") // 设定权限范围
+//                .scope("write")
+//                .tokenSettings(tokenSettings()) // 自定义token设置
+//                .build();
+//
+//        return new InMemoryRegisteredClientRepository(client);
+//    }
 
 
     @Bean

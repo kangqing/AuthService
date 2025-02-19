@@ -8,6 +8,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.introspection.NimbusOpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.introspection.SpringOpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.ArrayList;
@@ -57,6 +61,7 @@ public class ResourceSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .addFilterBefore(new TokenRevocationCheckFilter(), BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().authenticated()
                 )
@@ -66,4 +71,13 @@ public class ResourceSecurityConfig {
 
         return http.build();
     }
+
+//    @Bean
+//    public SpringOpaqueTokenIntrospector opaqueTokenIntrospector() {
+//        return new SpringOpaqueTokenIntrospector(
+//                "http://127.0.0.1:9000/oauth2/introspect", // 内省端点 URL
+//                "oidc-client", // 客户端 ID
+//                "123456" // 客户端密钥
+//        );
+//    }
 }
