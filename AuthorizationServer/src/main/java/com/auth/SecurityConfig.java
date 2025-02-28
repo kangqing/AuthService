@@ -4,6 +4,7 @@ import com.auth.endpoint.CustomTokenRevocationSuccessHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 import java.security.KeyPair;
@@ -31,6 +32,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -53,6 +56,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
+import static com.auth.config.CustomClientMetadataConfig.configureCustomClientMetadataConverters;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -73,12 +78,17 @@ public class SecurityConfig {
                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher()) // 只匹配 OAuth2 端点
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/oauth2/introspect").permitAll() // 允许访问 Token 端点
+                        .requestMatchers(HttpMethod.POST, "/oauth2/register").permitAll()
+                        .requestMatchers("/error").permitAll()  // 允许访问错误页面
                         .anyRequest().authenticated()
                 )
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/oauth2/introspect")) // 关闭 Token 端点 CSRF 保护
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/oauth2/register")) // 关闭 Token 端点 CSRF 保护
                 //.with(authorizationServerConfigurer, Customizer.withDefaults());
                 .with(authorizationServerConfigurer, (authorizationServer) ->
                         authorizationServer
+                                .oidc((oidc) ->
+                                        oidc.clientRegistrationEndpoint(clientRegistrationEndpoint ->
+                                                clientRegistrationEndpoint.authenticationProviders(configureCustomClientMetadataConverters())))
                                 .tokenRevocationEndpoint(tokenRevocationEndpoint ->
                                         tokenRevocationEndpoint
 //                                                .revocationRequestConverter(revocationRequestConverter)
@@ -183,5 +193,6 @@ public class SecurityConfig {
             }
         };
     }
+
 
 }
